@@ -11,7 +11,6 @@ import com.kylecorry.trail_sense.shared.preferences.PreferencesSubsystem
 import java.time.Duration
 import java.time.LocalTime
 
-// TODO: Autogenerate last run key (pref_andromeda_daily_worker_last_run_date_UNIQUEID)
 class AstronomyDailyWorker(context: Context, params: WorkerParameters) : DailyWorker(
     context,
     params,
@@ -19,13 +18,15 @@ class AstronomyDailyWorker(context: Context, params: WorkerParameters) : DailyWo
     getPreferences = { PreferencesSubsystem.getInstance(context).preferences },
 ) {
 
+    private val prefs: UserPreferences by lazy {
+        UserPreferences(context)
+    }
+
     override fun isEnabled(context: Context): Boolean {
-        val prefs = UserPreferences(context)
         return prefs.astronomy.sendAstronomyAlerts
     }
 
     override fun getScheduledTime(context: Context): LocalTime {
-        val prefs = UserPreferences(context)
         return prefs.astronomy.astronomyAlertTime
     }
 
@@ -33,14 +34,10 @@ class AstronomyDailyWorker(context: Context, params: WorkerParameters) : DailyWo
         AstronomyAlertCommand(context).execute()
     }
 
-    override val uniqueId: Int = UNIQUE_ID
-
-
     companion object {
+        private const val UNIQUE_ID = 72394823
 
-        const val UNIQUE_ID = 72394823
-
-        fun getScheduler(context: Context): IOneTimeTaskScheduler {
+        private fun getScheduler(context: Context): IOneTimeTaskScheduler {
             return OneTimeTaskSchedulerFactory(context).deferrable(
                 AstronomyDailyWorker::class.java,
                 UNIQUE_ID
